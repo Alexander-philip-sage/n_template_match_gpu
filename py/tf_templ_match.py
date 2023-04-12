@@ -37,6 +37,7 @@ def tf_template_match(image:np.ndarray, template:np.ndarray, method:str, verbose
   return res
 
 if __name__=='__main__':
+  verbose=False
   print("timing tf conv2d implementation")
   image_fname, method_name, start_dim1, start_dim2, templ_width =get_test_data(STUFF_TEST_CASES_CCOEFF, 0)
   image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
@@ -45,14 +46,20 @@ if __name__=='__main__':
   template = image[start_dim1:start_dim1+templ_width, start_dim2:start_dim2+templ_width].copy()
   assert (image.shape[0]>template.shape[0])
   assert (image.shape[1]>template.shape[1])  
-  print("image type",type(image))
-  print("image path", image_fname)
-  print(f"image shape {image.shape}")
-  print("method", method_name) 
-  print(f"point of template, template size ({start_dim1}, {start_dim2}, {templ_width})")
   assert method_name in ['cv2.TM_CCOEFF', 'cv2.TM_CCORR'], 'other methods not implemented'
   start = time.time()
   res=tf_template_match(image, template, method_name).numpy()
   print("total seconds: ", time.time()-start) 
   location = find_match_location(res, method_name)
-  print("found max at", location)
+  if location==(start_dim1, start_dim2):
+    print("found correct location")
+  else:
+    verbose=True
+  if verbose:
+    print("image type",type(image))
+    print("image path", image_fname)
+    print(f"image shape {image.shape}")
+    print("method", method_name) 
+    print(f"point on template, template size ({start_dim1}, {start_dim2}, {templ_width})")
+    print("found max at", location)
+  
