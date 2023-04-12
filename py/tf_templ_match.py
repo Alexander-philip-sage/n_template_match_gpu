@@ -5,6 +5,7 @@ import numpy as np
 from test_cases import BEADS_TEST_CASES_CCOEFF, STUFF_TEST_CASES_CCOEFF, METHODS, get_test_data, find_match_location
 import glob
 from PIL import Image, ImageOps
+import os
 
 def avg_pixel_val(template:np.ndarray):
   return tf.cast(math.reduce_sum(template), tf.float32)/tf.cast(math.reduce_prod(template.shape),tf.float32)
@@ -36,8 +37,10 @@ def tf_template_match(image:np.ndarray, template:np.ndarray, method:str, verbose
   return res
 
 if __name__=='__main__':
+  print("timing tf conv2d implementation")
   image_fname, method_name, start_dim1, start_dim2, templ_width =get_test_data(STUFF_TEST_CASES_CCOEFF, 0)
-  image = np.asarray(ImageOps.grayscale(Image.open(image_fname)))
+  image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
+  image = np.asarray(ImageOps.grayscale(Image.open(image_path)), dtype=np.float64)
   ##indexing a numpy array passes a reference not a copy
   template = image[start_dim1:start_dim1+templ_width, start_dim2:start_dim2+templ_width].copy()
   assert (image.shape[0]>template.shape[0])
@@ -49,7 +52,7 @@ if __name__=='__main__':
   print(f"point of template, template size ({start_dim1}, {start_dim2}, {templ_width})")
   assert method_name in ['cv2.TM_CCOEFF', 'cv2.TM_CCORR'], 'other methods not implemented'
   start = time.time()
-  res=tf_template_match(image, template, method_name)
+  res=tf_template_match(image, template, method_name).numpy()
   print("total seconds: ", time.time()-start) 
   location = find_match_location(res, method_name)
   print("found max at", location)

@@ -1,5 +1,6 @@
 #module load conda/2022-09-08
 #conda activate mb_aligner
+#qsub -A BrainImagingML -q debug -l select=1 -l walltime=00:60:00 -k doe -l filesystems=home:eagle -N numba_templ numba_templ_match.sh
 import numpy as np
 from test_cases import BEADS_TEST_CASES_CCOEFF, STUFF_TEST_CASES_CCOEFF, METHODS, get_test_data, find_match_location
 import glob
@@ -7,7 +8,7 @@ from PIL import Image, ImageOps
 import os
 import time
 
-from numba import jit, njit
+from numba import  njit
 
 @njit
 def template_match(image:np.ndarray, template:np.ndarray, method:str)->np.ndarray:
@@ -28,16 +29,18 @@ def template_match(image:np.ndarray, template:np.ndarray, method:str)->np.ndarra
   return ret
 
 if __name__=='__main__':
+  print("timing numba implementation")
   #test_data= glob.glob(os.path.join('*.jpg'))
   image_fname, method_name, start_dim1, start_dim2, templ_width =get_test_data(STUFF_TEST_CASES_CCOEFF, 0)
-  image = np.asarray(ImageOps.grayscale(Image.open(image_fname)), dtype=np.float64)
+  image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
+  image = np.asarray(ImageOps.grayscale(Image.open(image_path)), dtype=np.float64)
   ##indexing a numpy array passes a reference not a copy
   template = image[start_dim1:start_dim1+templ_width, start_dim2:start_dim2+templ_width].copy()
   print("image type",type(image))
   print("image path", image_fname)
   print(f"image shape {image.shape}")
   print("method", method_name) 
-  print(f"point of template, template size ({start_dim1}, {start_dim2}, {templ_width})")
+  print(f"point on template, template size ({start_dim1}, {start_dim2}, {templ_width})")
   print("running the function twice since the first time it runs, it compiles")
   print("only timing the second run")
   assert (image.shape[0]>template.shape[0])
