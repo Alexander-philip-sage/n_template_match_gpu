@@ -1,6 +1,4 @@
-#module load conda/2022-09-08
-#conda activate mb_aligner
-#qsub -A BrainImagingML -q debug -l select=1 -l walltime=00:60:00 -k doe -l filesystems=home:eagle -N numba_templ numba_templ_match.sh
+#qsub -A BrainImagingML -q debug -l select=1 -l walltime=00:60:00 -k doe -l filesystems=home:eagle -N cuda_templ_match cuda_templ_match.sh
 #supported numpy numba cuda functions http://numba.pydata.org/numba-doc/latest/cuda/cudapysupported.html
 import numpy as np
 from test_cases import BEADS_TEST_CASES_CCOEFF, STUFF_TEST_CASES_CCOEFF, METHODS, get_test_data, find_match_location
