@@ -6,7 +6,7 @@ from PIL import Image, ImageOps
 import os
 import time
 
-from numba import  njit, prange
+from numba import  njit, prange, jit
 
 @njit
 def template_match(image:np.ndarray, template:np.ndarray, res:np.ndarray, method:str)->None:
