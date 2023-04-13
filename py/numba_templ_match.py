@@ -6,7 +6,7 @@ from PIL import Image, ImageOps
 import os
 import time
 
-from numba import  njit
+from numba import  njit, prange
 
 @njit
 def template_match(image:np.ndarray, template:np.ndarray, res:np.ndarray, method:str)->None:
@@ -15,8 +15,8 @@ def template_match(image:np.ndarray, template:np.ndarray, res:np.ndarray, method
   diff_dim1 = image.shape[0]-template.shape[0]+1
   diff_dim2 = image.shape[1]-template.shape[1]+1
   template = np.subtract(template,(np.sum(template)/(template.shape[0]*template.shape[1])))
-  for i in range(diff_dim1):
-    for j in range(diff_dim2):
+  for i in prange(diff_dim1):
+    for j in prange(diff_dim2):
       res[i,j]=np.sum(np.multiply(image[i:i+w,j:j+h], template))
 
 if __name__=='__main__':
