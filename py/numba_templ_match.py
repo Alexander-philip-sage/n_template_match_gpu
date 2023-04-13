@@ -8,7 +8,7 @@ import time
 
 from numba import  njit, prange, jit
 
-@njit
+@jit(parallel=True)
 def template_match(image:np.ndarray, template:np.ndarray, res:np.ndarray, method:str)->None:
   w = template.shape[0]
   h = template.shape[1]
