@@ -6,8 +6,10 @@ import glob
 from PIL import Image, ImageOps
 import os
 import time
+import math
 
 from numba import  cuda, njit
+
 #@cuda.jit(device=True)
 
 #threadsperblock = (16, 16)
@@ -35,8 +37,11 @@ def increment_by_one(an_array):
 
 @cuda.jit
 def convolv_2d(image:np.ndarray, template:np.ndarray, res:np.ndarray)->None:
-  '''this will not be efficient. it will run a matrix multiplication on 
-  each thread instead of a single scalar multiplication'''
+  '''it will run a matrix multiplication on 
+  each thread instead of a single scalar multiplication, but if we did all the matrix multiplication on individual threads, 
+  then saved the results to a lookup data structure, 
+  we would then need the same size for loop to loop through the data structure 
+  summing the results into the result array - not saving any time'''
   cell_sum = 0
   # Thread id in a 1D block
   tx = cuda.threadIdx.x
@@ -54,39 +59,50 @@ def convolv_2d(image:np.ndarray, template:np.ndarray, res:np.ndarray)->None:
         cell_sum+=image[ri+ti,rj+tj]*template[ti,tj]
     res[ri,rj] = cell_sum
   
-@njit
+#@njit
 def template_match_host(image:np.ndarray, template:np.ndarray, res:np.ndarray, method:str)->None:
   '''each thread will get one template image pair and comput the matrix
   multiplication on it'''
+  ##do on cpu
   template = np.subtract(template,(np.sum(template)/(template.shape[0]*template.shape[1])))
+  ##copy to device
+  d_image = cuda.to_device(image)
+  d_template = cuda.to_device(template)
+  d_res = cuda.device_array(res.shape, dtype=res.dtype)
   threadsperblock = 32
-  blockspergrid = np.ceil(res.shape[0]*res.shape[1]/threadsperblock)
-  convolv_2d[blockspergrid, threadsperblock](image, template, res)
+  blockspergrid = math.ceil(res.shape[0]*res.shape[1]/threadsperblock)
+  convolv_2d[blockspergrid, threadsperblock](d_image, d_template, d_res)
+  cuda.synchronize()
+  ##copy res back to host
+  res.copy_to_host(d_res)
+
 
 if __name__=='__main__':
   verbose=False
+  
   print("timing numba implementation")
   #test_data= glob.glob(os.path.join('*.jpg'))
   image_fname, method_name, start_dim1, start_dim2, templ_width =get_test_data(STUFF_TEST_CASES_CCOEFF, 0)
   image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
-  image = np.asarray(ImageOps.grayscale(Image.open(image_path)), dtype=np.float64)
+  image = np.asarray(ImageOps.grayscale(Image.open(image_path)), dtype=np.float32)
   ##indexing a numpy array passes a reference not a copy
   template = image[start_dim1:start_dim1+templ_width, start_dim2:start_dim2+templ_width].copy()
   diff_dim1 = image.shape[0]-template.shape[0]+1
   diff_dim2 = image.shape[1]-template.shape[1]+1
-  res = np.zeros((diff_dim1,diff_dim2), dtype=np.float64)
+  res = np.zeros((diff_dim1,diff_dim2), dtype=np.float32)
   assert (image.shape[0]>template.shape[0])
   assert (image.shape[1]>template.shape[1])  
   assert method_name in ['cv2.TM_CCOEFF'], 'other methods not implemented'
   print("running the function twice since the first time it runs, it compiles")
   print("only timing the second run")
-  template_match(image, template, res, method_name)
+  template_match_host(image, template, res, method_name)
   start = time.time()
-  threadsperblock = 32
-  blockspergrid = (an_array.size + (threadsperblock - 1)) // threadsperblock
-  increment_by_one[blockspergrid, threadsperblock](an_array)  
-  template_match(image, template, res, method_name)
-  print("total seconds: ", time.time()-start) 
+  template_match_host(image, template, res, method_name)
+  end = time.time()
+  print("total seconds: ", end-start) 
+  FLOPS_thread = template.shape[0]*template.shape[1]
+  thread_ct = res.shape[0]*res.shape[1]
+  print("GFLOPS/s", (FLOPS_thread*thread_ct*1e-9)/(end-start))
   location = find_match_location(res, method_name)
   if location==(start_dim1, start_dim2):
     print("found correct location")

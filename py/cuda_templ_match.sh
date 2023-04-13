@@ -1,5 +1,5 @@
 module load conda/2022-09-08
-conda activate
+conda activate numba
 echo "CUDA_HOME: ${CUDA_HOME}"
 echo "NUMBA_CUDA_DRIVER: ${NUMBA_CUDA_DRIVER}"
 
