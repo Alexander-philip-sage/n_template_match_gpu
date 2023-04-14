@@ -74,16 +74,16 @@ def template_match_host(image:np.ndarray, template:np.ndarray, res:np.ndarray, m
   convolv_2d[blockspergrid, threadsperblock](d_image, d_template, d_res)
   cuda.synchronize()
   ##copy res back to host
-  res.copy_to_host(d_res)
+  d_res.copy_to_host(res)
 
-
-if __name__=='__main__':
+def main():
   verbose=False
   
   print("timing numba implementation")
   #test_data= glob.glob(os.path.join('*.jpg'))
   image_fname, method_name, start_dim1, start_dim2, templ_width =get_test_data(STUFF_TEST_CASES_CCOEFF, 0)
-  image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
+  image_path = image_fname
+  #image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
   image = np.asarray(ImageOps.grayscale(Image.open(image_path)), dtype=np.float32)
   ##indexing a numpy array passes a reference not a copy
   template = image[start_dim1:start_dim1+templ_width, start_dim2:start_dim2+templ_width].copy()
@@ -99,7 +99,7 @@ if __name__=='__main__':
   start = time.time()
   template_match_host(image, template, res, method_name)
   end = time.time()
-  print("total seconds: ", end-start) 
+  print("total seconds - single image-template pair: ", end-start) 
   FLOPS_thread = template.shape[0]*template.shape[1]
   thread_ct = res.shape[0]*res.shape[1]
   print("GFLOPS/s", (FLOPS_thread*thread_ct*1e-9)/(end-start))
@@ -114,4 +114,8 @@ if __name__=='__main__':
     print(f"image shape {image.shape}")
     print("method", method_name) 
     print(f"point on template, template size ({start_dim1}, {start_dim2}, {templ_width})")
-    print("found max at", location)
+    print("found max at", location)  
+
+
+if __name__=='__main__':
+  main()
