@@ -1,7 +1,8 @@
 module load conda/2022-09-08
 conda activate numba
-export CUDA_HOME=/soft/compilers/cudatoolkit/cuda-11.7.1
-export NUMBA_CUDA_DRIVER=/soft/compilers/cudatoolkit/cuda-11.7.1/lib64/libcudart.so
+#module load cudatoolkit-standalone/11.6.2
+export CUDA_HOME=/soft/compilers/cudatoolkit/cuda-11.6.2
+export NUMBA_CUDA_DRIVER=
 echo "CUDA_HOME: ${CUDA_HOME}"
 echo "NUMBA_CUDA_DRIVER: ${NUMBA_CUDA_DRIVER}"
 
