@@ -1,6 +1,7 @@
 #qsub -A BrainImagingML -q debug -l select=1 -l walltime=00:60:00 -k doe -l filesystems=home:eagle -N numba_templ numba_templ_match.sh
 import numpy as np
 from test_cases import BEADS_TEST_CASES_CCOEFF, STUFF_TEST_CASES_CCOEFF, METHODS, get_test_data, find_match_location
+from test_cases import COORD_START_DIM1, COORD_START_DIM2, COORD_HEIGHT, COORD_WIDTH, generate_coords
 import glob
 from PIL import Image, ImageOps
 import os
@@ -39,8 +40,8 @@ def time_single_run(image, image_fname, template, res, method_name, start_dim1, 
 def time_single_run_adjusted(image, image_fname,im_coord, template,templ_coord, res, method_name, verbose=False):
   template_match(image, template, res, method_name)
   location = find_match_location(res, method_name)
-  location = (location[0]+im_coord.start_dim1, location[1]+im_coord.start_dim2)
-  if location!=(templ_coord.start_dim1,templ_coord.start_dim2 ):
+  location = (location[0]+im_coord[COORD_START_DIM1], location[1]+im_coord[COORD_START_DIM2])
+  if location!=(templ_coord[COORD_START_DIM1],templ_coord[COORD_START_DIM2] ):
     verbose=True
   if verbose:
     print("image type",type(image))
@@ -48,7 +49,7 @@ def time_single_run_adjusted(image, image_fname,im_coord, template,templ_coord, 
     print(f"image shape {image.shape}")
     print("method", method_name) 
     print(f"image coordinates {im_coord}")
-    print(f"point of template on image, template size ({templ_coord.start_dim1}, {templ_coord.start_dim2}, {template.shape})")
+    print(f"point of template on image, template size ({templ_coord[COORD_START_DIM1]}, {templ_coord[COORD_START_DIM2]}, {template.shape})")
     print("found max at", location)
   return True
 
@@ -93,18 +94,10 @@ def n_templates():
   print("size of base image", image.shape)
   ##indexing a numpy array passes a reference not a copy
   template = image[start_dim1:start_dim1+templ_width, start_dim2:start_dim2+templ_width].copy()
-  template_coords = []
-  image_coords=[]
   ct_test_cases = len(STUFF_TEST_CASES_CCOEFF[1])
-  for ti in range(ct_test_cases):
-    image_fname, method_name, start_dim1, start_dim2, templ_width =get_test_data(STUFF_TEST_CASES_CCOEFF, ti)
-    template_coords.append(Coordinate(start_dim1, start_dim2, templ_width, templ_width))
-    offset = 300#int(templ_width*2)
-    i_start_dim1 = (start_dim1-offset) if (start_dim1-offset)>=0 else 0
-    i_start_dim2 = (start_dim2-offset) if (start_dim2-offset)>=0 else 0
-    i_height = (templ_width+offset) if (templ_width+offset)<image.shape[0] else (image.shape[0]-1)
-    i_width = (templ_width+offset) if (templ_width+offset)<image.shape[1] else (image.shape[1]-1)
-    image_coords.append(Coordinate(i_start_dim1, i_start_dim2, i_height, i_width, offset))
+  template_coords = np.zeros((ct_test_cases,4),dtype=np.int16)
+  image_coords= np.zeros((ct_test_cases,5),dtype=np.int16)
+  generate_coords(ct_test_cases,STUFF_TEST_CASES_CCOEFF, image, template_coords, image_coords)
     #print("templ coordinates", Coordinate(start_dim1, start_dim2, templ_width, templ_width))
     #print("image coords", Coordinate(i_start_dim1, i_start_dim2, i_height, i_width))
   print("number of test cases", len(template_coords))
@@ -119,14 +112,12 @@ def n_templates():
   template_match(image, template, res, method_name)
   start = time.time()
   for i in range(len(template_coords)):
-    templ_coord = template_coords[i]
-    tm = image[templ_coord.start_dim1:templ_coord.start_dim1+templ_coord.height,templ_coord.start_dim2:templ_coord.start_dim2+templ_coord.width]
-    im_coord = image_coords[i]
-    im = image[im_coord.start_dim1:im_coord.start_dim1+im_coord.height,im_coord.start_dim2:im_coord.start_dim2+im_coord.width]
-    ret_bl = time_single_run_adjusted(im, image_fname,im_coord, tm, templ_coord, res, method_name)
+    tm = image[template_coords[i][COORD_START_DIM1]:template_coords[i][COORD_START_DIM1]+template_coords[i][COORD_HEIGHT],
+               template_coords[i][COORD_START_DIM2]:template_coords[i][COORD_START_DIM2]+template_coords[i][COORD_WIDTH]]
+    im = image[image_coords[i][COORD_START_DIM1]:image_coords[i][COORD_START_DIM1]+image_coords[i][COORD_HEIGHT],
+               image_coords[i][COORD_START_DIM2]:image_coords[i][COORD_START_DIM2]+image_coords[i][COORD_WIDTH]]
+    ret_bl = time_single_run_adjusted(im, image_fname,image_coords[i], tm, template_coords[i], res, method_name)
   print("seconds/template-image pair: ", (time.time()-start)/ct_test_cases) 
-
-
 
 if __name__=='__main__':
   n_templates()

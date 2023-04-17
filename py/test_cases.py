@@ -1,4 +1,5 @@
 import numpy as np
+COORD_START_DIM1, COORD_START_DIM2, COORD_HEIGHT, COORD_WIDTH = 0,1,2,3 
 STUFF_TEST_CASES=['stuff.jpg',[['cv2.TM_CCOEFF', 270, 244, 200], ['cv2.TM_CCOEFF', 228, 156, 200], 
                                 ['cv2.TM_CCOEFF', 64, 45, 200], ['cv2.TM_CCOEFF', 39, 158, 200], 
                                 ['cv2.TM_CCOEFF', 252, 169, 200], 
@@ -72,3 +73,16 @@ def find_match_location(res:np.ndarray, method_name:str, verbose=False):
       print('dist', (max_val-mean)/std)
     top_left = max_loc
   return top_left
+
+  
+def generate_coords(ct_test_cases:int,test_cases, image:np.ndarray, template_coords:np.ndarray, image_coords:np.ndarray):
+  for ti in range(ct_test_cases):
+    image_fname, method_name, start_dim1, start_dim2, templ_width =get_test_data(test_cases, ti)
+    template_coords[ti,:]=[start_dim1, start_dim2, templ_width, templ_width]
+    offset = int(templ_width*2)
+    i_start_dim1 = (start_dim1-offset) if (start_dim1-offset)>=0 else 0
+    i_start_dim2 = (start_dim2-offset) if (start_dim2-offset)>=0 else 0
+    i_height = (templ_width+offset) if (templ_width+offset)<image.shape[0] else (image.shape[0]-1)
+    i_width = (templ_width+offset) if (templ_width+offset)<image.shape[1] else (image.shape[1]-1)
+    image_coords[ti,:]=[i_start_dim1, i_start_dim2, i_height, i_width, offset]
+  return 
