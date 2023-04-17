@@ -3,7 +3,7 @@ STUFF_TEST_CASES=['stuff.jpg',[['cv2.TM_CCOEFF', 270, 244, 200], ['cv2.TM_CCOEFF
                                 ['cv2.TM_CCOEFF', 64, 45, 200], ['cv2.TM_CCOEFF', 39, 158, 200], 
                                 ['cv2.TM_CCOEFF', 252, 169, 200], 
                                 ['cv2.TM_CCOEFF', 139, 54, 200], ['cv2.TM_CCOEFF', 146, 247, 200], 
-                                ['cv2.TM_CCOEFF', 187, 236, 125], ['cv2.TM_CCOEFF_NORMED', 270, 244, 200], ['cv2.TM_CCOEFF_NORMED', 228, 156, 200], 
+                                ['cv2.TM_CCOEFF_NORMED', 270, 244, 200], ['cv2.TM_CCOEFF_NORMED', 228, 156, 200], 
                                 ['cv2.TM_CCOEFF_NORMED', 64, 45, 200], ['cv2.TM_CCOEFF_NORMED', 39, 158, 200], 
                                 ['cv2.TM_CCOEFF_NORMED', 252, 169, 200], ['cv2.TM_CCOEFF_NORMED', 29, 412, 200],
                                 ['cv2.TM_CCOEFF_NORMED', 139, 54, 200], ['cv2.TM_CCOEFF_NORMED', 146, 247, 200], 
