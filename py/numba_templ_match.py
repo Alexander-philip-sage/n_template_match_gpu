@@ -37,7 +37,7 @@ def time_single_run(image, image_fname, template, res, method_name, start_dim1, 
     print(f"point on template, template size ({start_dim1}, {start_dim2}, {templ_width})")
     print("found max at", location)
 
-def time_single_run_adjusted(image, image_fname,im_coord, template,templ_coord, res, method_name, verbose=False):
+def time_single_run_adjusted(image:np.ndarray, image_fname:str,im_coord:np.ndarray, template,templ_coord, res, method_name, verbose=False):
   template_match(image, template, res, method_name)
   location = find_match_location(res, method_name)
   location = (location[0]+im_coord[COORD_START_DIM1], location[1]+im_coord[COORD_START_DIM2])
@@ -88,7 +88,7 @@ def n_templates():
   print("timing multi-image-templ-pair numba implementation")
   image_fname, method_name, start_dim1, start_dim2, templ_width =get_test_data(STUFF_TEST_CASES_CCOEFF, 0)
   image_path = os.path.join("/Users/apsage/Documents/n_template_match_gpu/",image_fname)
-
+  image_path = image_fname
   ##setup image, template and coordinates
   image = np.asarray(ImageOps.grayscale(Image.open(image_path)), dtype=np.float64)
   print("size of base image", image.shape)
@@ -98,8 +98,8 @@ def n_templates():
   template_coords = np.zeros((ct_test_cases,4),dtype=np.int16)
   image_coords= np.zeros((ct_test_cases,5),dtype=np.int16)
   generate_coords(ct_test_cases,STUFF_TEST_CASES_CCOEFF, image, template_coords, image_coords)
-    #print("templ coordinates", Coordinate(start_dim1, start_dim2, templ_width, templ_width))
-    #print("image coords", Coordinate(i_start_dim1, i_start_dim2, i_height, i_width))
+  #print("templ coordinates", Coordinate(start_dim1, start_dim2, templ_width, templ_width))
+  #print("image coords", Coordinate(i_start_dim1, i_start_dim2, i_height, i_width))
   print("number of test cases", len(template_coords))
   diff_dim1 = image.shape[0]-template.shape[0]+1
   diff_dim2 = image.shape[1]-template.shape[1]+1

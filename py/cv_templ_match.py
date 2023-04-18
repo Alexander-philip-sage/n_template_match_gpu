@@ -7,7 +7,7 @@ import glob
 import time
 from test_cases import BEADS_TEST_CASES_CCOEFF, STUFF_TEST_CASES_CCOEFF, METHODS, get_test_data, find_match_location
 
-if __name__=='__main__':
+def main():
     verbose=False
     print("timing opencv-cpu implementation")
     image_fname, method_name, start_dim1, start_dim2, templ_width =get_test_data(STUFF_TEST_CASES_CCOEFF, 0)
@@ -20,8 +20,13 @@ if __name__=='__main__':
     assert method_name in ['cv2.TM_CCOEFF', 'cv2.TM_CCORR'], 'other methods not implemented'
     start = time.time()
     method = eval(method_name)
-    res = cv2.matchTemplate(image,template,method)
-    print("total seconds: ", time.time()-start) 
+    N = 10
+    start = time.time()
+    for i in range(N):
+        res = cv2.matchTemplate(image,template,method)
+    end = time.time()
+    print("total seconds - opencv single image-template pair: ", (end-start)/N) 
+    
     location = find_match_location(res, method_name)
     if location==(start_dim1, start_dim2):
         print("found correct location")
@@ -34,3 +39,7 @@ if __name__=='__main__':
         print("method", method_name) 
         print(f"point on template, template size ({start_dim1}, {start_dim2}, {templ_width})")
         print("found max at", location)
+
+
+if __name__=='__main__':
+    main()
