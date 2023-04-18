@@ -40,8 +40,8 @@ def templ_match():
   verbose=False
   print("timing tf conv2d implementation")
   image_fname, method_name, start_dim1, start_dim2, templ_width =get_test_data(STUFF_TEST_CASES_CCOEFF, 0)
-  #image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
-  image_path = image_fname
+  image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
+  #image_path = image_fname
   image = np.asarray(ImageOps.grayscale(Image.open(image_path)), dtype=np.float64)
   ##indexing a numpy array passes a reference not a copy
   template = image[start_dim1:start_dim1+templ_width, start_dim2:start_dim2+templ_width].copy()
@@ -49,6 +49,7 @@ def templ_match():
   assert (image.shape[1]>template.shape[1])  
   assert method_name in ['cv2.TM_CCOEFF', 'cv2.TM_CCORR'], 'other methods not implemented'
   N = 10
+  res=tf_template_match(image, template, method_name).numpy()
   start = time.time()
   for i in range(N):
     res=tf_template_match(image, template, method_name).numpy()
