@@ -15,3 +15,9 @@ START=`date +"%s"`
 /usr/bin/time -v python3 /eagle/BrainImagingML/apsage/n_template_match_gpu/py/cuda_numba_templ_match.py 
 NOW=`date +"%s"`
 echo $((NOW - START)) seconds
+
+echo "Numba-CUDA-N-Template-Image-Pairs"
+START=`date +"%s"`
+/usr/bin/time -v python3 /eagle/BrainImagingML/apsage/n_template_match_gpu/py/n_cuda_numba_templ_match.py 
+NOW=`date +"%s"`
+echo $((NOW - START)) seconds
