@@ -92,7 +92,7 @@ def prep_batch_template(repeat = 0):
   template_time = time.time() - start_template
   print("time to prepare template per template", template_time)
   print(" per template", template_time/len(cases))
-  return image, batch, cases 
+  return image, batch, cases , template_time
 def tf_batch_conv(image:np.ndarray, batch_templates:np.ndarray, verbose: bool = False):
   start_variable_seup=time.time()
   tf_image = tf.expand_dims(tf.expand_dims(tf.convert_to_tensor(
@@ -110,17 +110,15 @@ def tf_batch_conv(image:np.ndarray, batch_templates:np.ndarray, verbose: bool = 
   end_compute = time.time()
   compute_time = end_compute - start_compute
   if verbose:
-    print("batch template shape", batch_templates.shape)
-    print('memory allocation time:', memory_time)
     print("image shape", tf_image.shape)
     print("batch template shape", batch_templates.shape)
+    print('tf_tensor conversion of image:', memory_time)
     print("compute time:", compute_time)
     print("compute time per frame:", compute_time/batch_templates.shape[-1])
-    print("total time per frame", (end_compute - start_variable_seup)/batch_templates.shape[-1])
     print("result shape", res.shape)
   return res, batch_templates.shape[-1], compute_time, memory_time
 def batch_main():
-  image, batch_template, cases=prep_batch_template(repeat=2)
+  image, batch_template, cases, template_time=prep_batch_template(repeat=2)
   method_name = cases[0][0]
   res, ct_frames, compute_time, memory_time = tf_batch_conv(image, batch_template, verbose=False)
   time.sleep(2)
@@ -128,7 +126,7 @@ def batch_main():
   res, ct_frames, compute_time, memory_time = tf_batch_conv(image, batch_template, verbose=True)
   #plt.imshow(res)
   end = time.time()
-  print("total seconds: ", end-start)
+  print("total time per frame", ((end-start)+template_time)/ct_frames)
   result =res.numpy()
   all_correct = True
   for i in range(result.shape[3]):

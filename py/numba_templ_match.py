@@ -20,6 +20,7 @@ def np_template_match(image:np.ndarray, template:np.ndarray, res:np.ndarray, met
     for j in prange(diff_dim2):
       res[i,j]=np.sum(np.multiply(image[i:i+w,j:j+h], template))
 
+@njit(parallel=True)
 def einsum_template_match(image:np.ndarray, template:np.ndarray, res:np.ndarray, method:str)->None:
   w = template.shape[0]
   h = template.shape[1]
@@ -28,7 +29,10 @@ def einsum_template_match(image:np.ndarray, template:np.ndarray, res:np.ndarray,
   template = np.subtract(template,(np.sum(template)/(template.shape[0]*template.shape[1])))
   for i in prange(diff_dim1):
     for j in prange(diff_dim2):
-      res[i,j]=np.einsum("ij, ij->",image[i:i+w,j:j+h], template, dtype=res.dtype)
+      image_window = image[i:i+w,j:j+h]
+      for ti in range(template.shape[0]):
+        for tj in range(template.shape[1]):
+          res[i,j] +=  image_window[ti,tj]*template[ti,tj]
 
 def time_single_run(image, image_fname, template, res, method_name, start_dim1, start_dim2, templ_width, verbose=False):
   start = time.time()
@@ -48,11 +52,13 @@ def time_single_run(image, image_fname, template, res, method_name, start_dim1, 
     print("found max at", location)
 
 def time_single_run_adjusted(image:np.ndarray, image_fname:str,im_coord:np.ndarray, template,templ_coord, res, method_name, verbose=False):
+  start = time.time()
   einsum_template_match(image, template, res, method_name)
+  end = time.time()
   location = find_match_location(res, method_name)
   location = (location[0]+im_coord[COORD_START_DIM1], location[1]+im_coord[COORD_START_DIM2])
   if location!=(templ_coord[COORD_START_DIM1],templ_coord[COORD_START_DIM2] ):
-    verbose=True
+    verbose=True,end-start 
   if verbose:
     print("image type",type(image))
     print("image path", image_fname)
@@ -61,7 +67,7 @@ def time_single_run_adjusted(image:np.ndarray, image_fname:str,im_coord:np.ndarr
     print(f"image coordinates {im_coord}")
     print(f"point of template on image, template size ({templ_coord[COORD_START_DIM1]}, {templ_coord[COORD_START_DIM2]}, {template.shape})")
     print("found max at", location)
-  return True
+  return False , end-start
 
 def main():
   print("timing numba implementation")
@@ -122,14 +128,17 @@ def n_templates():
   print("running the function twice since the first time it runs, it compiles")
   print("only timing the second run")  
   einsum_template_match(image, template, res, method_name)
-  start = time.time()
+  timing =0 
   for i in range(len(template_coords)):
     tm = image[template_coords[i][COORD_START_DIM1]:template_coords[i][COORD_START_DIM1]+template_coords[i][COORD_HEIGHT],
                template_coords[i][COORD_START_DIM2]:template_coords[i][COORD_START_DIM2]+template_coords[i][COORD_WIDTH]]
     im = image[image_coords[i][COORD_START_DIM1]:image_coords[i][COORD_START_DIM1]+image_coords[i][COORD_HEIGHT],
                image_coords[i][COORD_START_DIM2]:image_coords[i][COORD_START_DIM2]+image_coords[i][COORD_WIDTH]]
-    ret_bl = time_single_run_adjusted(im, image_fname,image_coords[i], tm, template_coords[i], res, method_name)
-  print("seconds/template-image pair: ", (time.time()-start)/ct_test_cases) 
+    ret_bl, time_passed = time_single_run_adjusted(im, image_fname,image_coords[i], tm, template_coords[i], res, method_name)
+    timing += time_passed
+    if not ret_bl:
+      print("incorrect results")
+  print("seconds/template-image pair: ", (timing)/ct_test_cases) 
 
 if __name__=='__main__':
   n_templates()
