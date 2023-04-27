@@ -7,10 +7,10 @@ from PIL import Image, ImageOps
 import os
 import time
 
-from numba import  njit, prange
+from numba import  jit,njit, prange
 
 @njit(parallel=True)
-def template_match(image:np.ndarray, template:np.ndarray, res:np.ndarray, method:str)->None:
+def np_template_match(image:np.ndarray, template:np.ndarray, res:np.ndarray, method:str)->None:
   w = template.shape[0]
   h = template.shape[1]
   diff_dim1 = image.shape[0]-template.shape[0]+1
@@ -20,9 +20,19 @@ def template_match(image:np.ndarray, template:np.ndarray, res:np.ndarray, method
     for j in prange(diff_dim2):
       res[i,j]=np.sum(np.multiply(image[i:i+w,j:j+h], template))
 
+def einsum_template_match(image:np.ndarray, template:np.ndarray, res:np.ndarray, method:str)->None:
+  w = template.shape[0]
+  h = template.shape[1]
+  diff_dim1 = image.shape[0]-template.shape[0]+1
+  diff_dim2 = image.shape[1]-template.shape[1]+1
+  template = np.subtract(template,(np.sum(template)/(template.shape[0]*template.shape[1])))
+  for i in prange(diff_dim1):
+    for j in prange(diff_dim2):
+      res[i,j]=np.einsum("ij, ij->",image[i:i+w,j:j+h], template, dtype=res.dtype)
+
 def time_single_run(image, image_fname, template, res, method_name, start_dim1, start_dim2, templ_width, verbose=False):
   start = time.time()
-  template_match(image, template, res, method_name)
+  einsum_template_match(image, template, res, method_name)
   print("total seconds: ", time.time()-start) 
   location = find_match_location(res, method_name)
   if location==(start_dim1, start_dim2):
@@ -38,7 +48,7 @@ def time_single_run(image, image_fname, template, res, method_name, start_dim1, 
     print("found max at", location)
 
 def time_single_run_adjusted(image:np.ndarray, image_fname:str,im_coord:np.ndarray, template,templ_coord, res, method_name, verbose=False):
-  template_match(image, template, res, method_name)
+  einsum_template_match(image, template, res, method_name)
   location = find_match_location(res, method_name)
   location = (location[0]+im_coord[COORD_START_DIM1], location[1]+im_coord[COORD_START_DIM2])
   if location!=(templ_coord[COORD_START_DIM1],templ_coord[COORD_START_DIM2] ):
@@ -70,7 +80,7 @@ def main():
   assert method_name in ['cv2.TM_CCOEFF'], 'other methods not implemented'
   print("running the function twice since the first time it runs, it compiles")
   print("only timing the second run")
-  template_match(image, template, res, method_name)
+  einsum_template_match(image, template, res, method_name)
   time_single_run(image, image_fname, template, res, method_name, start_dim1, start_dim2, templ_width)
   print(start_dim1, start_dim2)
 class Coordinate():
@@ -111,7 +121,7 @@ def n_templates():
   assert method_name in ['cv2.TM_CCOEFF'], 'other methods not implemented'
   print("running the function twice since the first time it runs, it compiles")
   print("only timing the second run")  
-  template_match(image, template, res, method_name)
+  einsum_template_match(image, template, res, method_name)
   start = time.time()
   for i in range(len(template_coords)):
     tm = image[template_coords[i][COORD_START_DIM1]:template_coords[i][COORD_START_DIM1]+template_coords[i][COORD_HEIGHT],

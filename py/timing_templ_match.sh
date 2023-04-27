@@ -1,3 +1,4 @@
+#qsub -A BrainImagingML -q debug -l select=1 -l walltime=00:60:00 -k doe -l filesystems=home:eagle -N timing_tmpl_match  timing_templ_match.sh
 module load conda/2022-09-08
 conda activate
 echo "CUDA_HOME: ${CUDA_HOME}"

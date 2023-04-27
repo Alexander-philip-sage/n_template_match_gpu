@@ -41,8 +41,8 @@ def templ_match():
   print("timing tf conv2d implementation")
   image_fname, method_name, start_dim1, start_dim2, templ_width =get_test_data(STUFF_TEST_CASES_CCOEFF, 0)
   #image_path = image_fname
-  image = np.asarray(ImageOps.grayscale(Image.open(image_path)), dtype=np.float32)
   image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
+  image = np.asarray(ImageOps.grayscale(Image.open(image_path)), dtype=np.float32)
   ##indexing a numpy array passes a reference not a copy
   template = image[start_dim1:start_dim1+templ_width, start_dim2:start_dim2+templ_width].copy()
   assert (image.shape[0]>template.shape[0])
@@ -76,7 +76,7 @@ def prep_batch_template(repeat = 0):
 
   image_fname = STUFF_TEST_CASES_CCOEFF[0]
   image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
-  image_path = image_fname
+  #image_path = image_fname
   image = np.asarray(ImageOps.grayscale(Image.open(image_path)), dtype=np.float32)
   test_cases = STUFF_TEST_CASES_CCOEFF[1]
   cases = []
