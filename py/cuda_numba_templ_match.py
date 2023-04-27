@@ -61,8 +61,8 @@ def template_match():
   print("timing numba implementation")
   #test_data= glob.glob(os.path.join('*.jpg'))
   image_fname, method_name, start_dim1, start_dim2, templ_width =get_test_data(STUFF_TEST_CASES_CCOEFF, 0)
-  image_path = image_fname
-  #image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
+  #image_path = image_fname
+  image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
   image = np.asarray(ImageOps.grayscale(Image.open(image_path)), dtype=np.float32)
   ##indexing a numpy array passes a reference not a copy
   template = image[start_dim1:start_dim1+templ_width, start_dim2:start_dim2+templ_width].copy()

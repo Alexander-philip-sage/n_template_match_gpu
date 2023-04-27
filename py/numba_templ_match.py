@@ -57,8 +57,8 @@ def main():
   print("timing numba implementation")
   #test_data= glob.glob(os.path.join('*.jpg'))
   image_fname, method_name, start_dim1, start_dim2, templ_width =get_test_data(STUFF_TEST_CASES_CCOEFF, 7)
-  image_path = os.path.join("/Users/apsage/Documents/n_template_match_gpu/",image_fname)
-  #image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
+  #image_path = os.path.join("/Users/apsage/Documents/n_template_match_gpu/",image_fname)
+  image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
   image = np.asarray(ImageOps.grayscale(Image.open(image_path)), dtype=np.float64)
   ##indexing a numpy array passes a reference not a copy
   template = image[start_dim1:start_dim1+templ_width, start_dim2:start_dim2+templ_width].copy()
@@ -86,9 +86,11 @@ class Coordinate():
 
 def n_templates():
   print("timing multi-image-templ-pair numba implementation")
+  print("iteration over image-templ paris is not parallelized with numba")
   image_fname, method_name, start_dim1, start_dim2, templ_width =get_test_data(STUFF_TEST_CASES_CCOEFF, 0)
-  image_path = os.path.join("/Users/apsage/Documents/n_template_match_gpu/",image_fname)
-  image_path = image_fname
+  image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu/",image_fname)
+  #image_path = os.path.join("/Users/apsage/Documents/n_template_match_gpu/",image_fname)
+  #image_path = image_fname
   ##setup image, template and coordinates
   image = np.asarray(ImageOps.grayscale(Image.open(image_path)), dtype=np.float64)
   print("size of base image", image.shape)
