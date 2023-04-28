@@ -119,7 +119,7 @@ def n_templates():
   print("\ntiming multi-image-templ-pair numba implementation")
   image_fname, method_name, start_dim1, start_dim2, templ_width =get_test_data(STUFF_TEST_CASES_CCOEFF, 0)
   image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu/",image_fname)
-  image_path = os.path.join("/Users/apsage/Documents/n_template_match_gpu/",image_fname)
+  #image_path = os.path.join("/Users/apsage/Documents/n_template_match_gpu/",image_fname)
   #image_path = image_fname
   ##setup image, template and coordinates
   image = np.asarray(ImageOps.grayscale(Image.open(image_path)), dtype=np.float32)
