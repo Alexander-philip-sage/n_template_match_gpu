@@ -79,10 +79,10 @@ def generate_coords(ct_test_cases:int,test_cases, image:np.ndarray, template_coo
   for ti in range(ct_test_cases):
     image_fname, method_name, start_dim1, start_dim2, templ_width =get_test_data(test_cases, ti)
     template_coords[ti,:]=[start_dim1, start_dim2, templ_width, templ_width]
-    offset = int(templ_width*0.75)
+    offset = int(templ_width*0.25)
     i_start_dim1 = (start_dim1-offset) if (start_dim1-offset)>=0 else 0
     i_start_dim2 = (start_dim2-offset) if (start_dim2-offset)>=0 else 0
-    i_height = (templ_width+offset) if (templ_width+offset)<image.shape[0] else (image.shape[0]-1)
-    i_width = (templ_width+offset) if (templ_width+offset)<image.shape[1] else (image.shape[1]-1)
+    i_height = (templ_width+2*offset) if (templ_width+2*offset)<image.shape[0] else (image.shape[0]-1)
+    i_width = (templ_width+2*offset) if (templ_width+2*offset)<image.shape[1] else (image.shape[1]-1)
     image_coords[ti,:]=[i_start_dim1, i_start_dim2, i_height, i_width, offset]
   return 
