@@ -20,7 +20,6 @@ def convolv_2d(image:np.ndarray, template:np.ndarray, res:np.ndarray)->None:
   then saved the results to a lookup data structure, 
   we would then need the same size for loop to loop through the data structure 
   summing the results into the result array - not saving any time'''
-  cell_sum = 0
   # Thread id in a 1D block
   tx = cuda.threadIdx.x
   # Block id in a 1D grid
@@ -34,8 +33,7 @@ def convolv_2d(image:np.ndarray, template:np.ndarray, res:np.ndarray)->None:
   if ri < res.shape[0] and rj < res.shape[1]:
     for ti in range(template.shape[0]):
       for tj in range(template.shape[1]):
-        cell_sum+=image[ri+ti,rj+tj]*template[ti,tj]
-    res[ri,rj] = cell_sum
+        res[ri,rj] +=image[ri+ti,rj+tj]*template[ti,tj]
   
 def template_match_host(image:np.ndarray, template:np.ndarray, res:np.ndarray, method:str)->None:
   '''each thread will get one template image pair and comput the matrix
@@ -57,7 +55,7 @@ def template_match_host(image:np.ndarray, template:np.ndarray, res:np.ndarray, m
 
 def template_match():
   verbose=False
-  print("timing numba implementation")
+  print("\ntiming numba implementation")
   #test_data= glob.glob(os.path.join('*.jpg'))
   image_fname, method_name, start_dim1, start_dim2, templ_width =get_test_data(STUFF_TEST_CASES_CCOEFF, 0)
   #image_path = image_fname

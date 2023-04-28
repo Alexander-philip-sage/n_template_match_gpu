@@ -9,7 +9,7 @@ from test_cases import BEADS_TEST_CASES_CCOEFF, STUFF_TEST_CASES_CCOEFF, METHODS
 
 def main():
     verbose=False
-    print("timing opencv-cpu implementation")
+    print("\ntiming opencv-cpu implementation")
     image_fname, method_name, start_dim1, start_dim2, templ_width =get_test_data(STUFF_TEST_CASES_CCOEFF, 0)
     image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
     image = cv2.imread(image_path, 0)
