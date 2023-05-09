@@ -1,11 +1,15 @@
 import tensorflow as tf
 import tensorflow.math as math
+import pandas as pd
 import time
+from test_cases import crop_template_search_window
 import numpy as np
-from test_cases import BEADS_TEST_CASES_CCOEFF, STUFF_TEST_CASES_CCOEFF, METHODS, get_test_data, find_match_location
-import glob
+from test_cases import TestCase
+from test_cases import  STUFF_TEST_CASES_CCOEFF,  get_test_data, find_match_location
+
 from PIL import Image, ImageOps
 import os
+import pickle
 
 def avg_pixel_val(template:np.ndarray):
   return tf.cast(math.reduce_sum(template), tf.float32)/tf.cast(math.reduce_prod(template.shape),tf.float32)
@@ -100,7 +104,6 @@ def tf_batch_conv(image:np.ndarray, batch_templates:np.ndarray, verbose: bool = 
   memory_time = time.time() - start_variable_seup
   start_compute = time.time()
   ccoeff_coef = (math.reduce_sum(batch_templates,axis=(0,1), keepdims=True)/(batch_templates.shape[0]*batch_templates.shape[1]))
-  print("ccoeff shape",ccoeff_coef.shape)
   batch_templates = math.subtract(batch_templates, ccoeff_coef)
   #print("batch_templates", type(batch_templates.numpy()), batch_templates.shape)
   #print("tf_image", type(tf_image.numpy()), tf_image.shape)
@@ -110,6 +113,7 @@ def tf_batch_conv(image:np.ndarray, batch_templates:np.ndarray, verbose: bool = 
   end_compute = time.time()
   compute_time = end_compute - start_compute
   if verbose:
+    print("ccoeff shape",ccoeff_coef.shape)
     print("image shape", tf_image.shape)
     print("batch template shape", batch_templates.shape)
     print('tf_tensor conversion of image:', memory_time)
@@ -117,6 +121,7 @@ def tf_batch_conv(image:np.ndarray, batch_templates:np.ndarray, verbose: bool = 
     print("compute time per frame:", compute_time/batch_templates.shape[-1])
     print("result shape", res.shape)
   return res, batch_templates.shape[-1], compute_time, memory_time
+
 def batch_main():
   image, batch_template, cases, template_time=prep_batch_template(repeat=2)
   method_name = cases[0][0]
@@ -139,5 +144,46 @@ def batch_main():
   if all_correct:
     print("correct location")  
 
+def timing_test_cases():
+    timing_data = []
+    verbose=False
+    print("\ntiming tf-batch implementation")
+    with open("test_cases.pickle", 'rb') as fileobj:
+        test_cases = pickle.load(fileobj)    
+    image_fname = "search8000x8000.png"
+    image_path=image_fname
+    #image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
+    #image = cv2.imread(image_path, 0)
+    image = np.asarray(ImageOps.grayscale(Image.open(image_path)), dtype=np.float32)
+    for test_case in test_cases:
+        N = 10
+        if test_case.template_size<1000 and test_case.image_size< 3000:
+          start = time.time()
+          template, search_window = crop_template_search_window(test_case, image)
+          batch_template = np.zeros((template.shape[0],template.shape[1],1,N), dtype=np.float32)
+          for i in range(N):
+            batch_template[:,:,0,i] = template[:,:].copy()
+          print("memory allocated", time.time()-start)
+          res_batch, ct_frames, compute_time, memory_time = tf_batch_conv(search_window, batch_template.copy(), verbose=False)
+          res = res_batch[0,:,:,0].numpy()
+          max_loc = np.unravel_index(res.argmax(), res.shape)
+          max_loc = (max_loc[0]+test_case.image_loc[0],max_loc[1]+test_case.image_loc[1])
+          correct=True
+          if max_loc!=(test_case.template_loc[0], test_case.template_loc[1]):
+              print("tf batch incorrect location")
+              correct=False
+          start = time.time()
+          res_batch, ct_frames, compute_time, memory_time = tf_batch_conv(search_window, batch_template.copy(), verbose=False)
+          pair_time = (time.time()-start)/N
+          print("tf-batch image-template pair: ",test_case.template_size, test_case.image_size, correct, pair_time, 's' ) 
+          
+          timing_data.append(['tf-batch',test_case.template_size, test_case.image_size, correct, pair_time])
+        else:
+          print("skipping", test_case.template_size, test_case.image_size)
+    time_df = pd.DataFrame(timing_data, columns=['algorithm', 'template_size', 'search_window_size', 'accuracy', 'time'])
+
+    time_df.to_csv("tm_timing_tf_batch.csv", index=False)
+
+
 if __name__=='__main__':
-  batch_main()
+  timing_test_cases()

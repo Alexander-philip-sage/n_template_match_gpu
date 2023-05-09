@@ -86,3 +86,17 @@ def generate_coords(ct_test_cases:int,test_cases, image:np.ndarray, template_coo
     i_width = (templ_width+2*offset) if (templ_width+2*offset)<image.shape[1] else (image.shape[1]-1)
     image_coords[ti,:]=[i_start_dim1, i_start_dim2, i_height, i_width, offset]
   return 
+
+class TestCase:
+    def __init__(self,template_loc, image_loc, template_size, image_size, fname):
+        self.template_loc=template_loc
+        self.image_loc=image_loc
+        self.template_size=template_size
+        self.image_size=image_size
+        self.fname=fname
+def crop_template_search_window(test_case, image):
+    tmpl = image[test_case.template_loc[0]:test_case.template_loc[0]+test_case.template_size, 
+                 test_case.template_loc[1]:test_case.template_loc[1]+test_case.template_size].copy()
+    search_window = image[test_case.image_loc[0]:test_case.image_loc[0]+test_case.image_size,
+                          test_case.image_loc[1]:test_case.image_loc[1]+test_case.image_size].copy()
+    return tmpl, search_window

@@ -1,45 +1,43 @@
 import sys
 import cv2
 import numpy as np
+import pickle
 import os
 from typing import Tuple
+from test_cases import TestCase
 import glob
+import pandas as pd
 import time
-from test_cases import BEADS_TEST_CASES_CCOEFF, STUFF_TEST_CASES_CCOEFF, METHODS, get_test_data, find_match_location
-
-def main():
+from test_cases import crop_template_search_window
+def timing_test_cases():
+    timing_data = []
     verbose=False
     print("\ntiming opencv-cpu implementation")
-    image_fname, method_name, start_dim1, start_dim2, templ_width =get_test_data(STUFF_TEST_CASES_CCOEFF, 0)
-    image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
+    image_fname = "search8000x8000.png"
+    with open("test_cases.pickle", 'rb') as fileobj:
+        test_cases = pickle.load(fileobj)    
+    image_path=image_fname
+    #image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
     image = cv2.imread(image_path, 0)
     ##indexing a numpy array passes a reference not a copy
-    template = image[start_dim1:start_dim1+templ_width, start_dim2:start_dim2+templ_width].copy()
-    assert (image.shape[0]>template.shape[0])
-    assert (image.shape[1]>template.shape[1])  
-    assert method_name in ['cv2.TM_CCOEFF', 'cv2.TM_CCORR'], 'other methods not implemented'
-    start = time.time()
-    method = eval(method_name)
-    N = 10
-    start = time.time()
-    for i in range(N):
-        res = cv2.matchTemplate(image,template,method)
-    end = time.time()
-    print("total seconds - opencv single image-template pair: ", (end-start)/N) 
-    
-    location = find_match_location(res, method_name)
-    if location==(start_dim1, start_dim2):
-        print("found correct location")
-    else:
-        verbose=True
-    if verbose:
-        print("image type",type(image))
-        print("image path", image_fname)
-        print(f"image shape {image.shape}")
-        print("method", method_name) 
-        print(f"point on template, template size ({start_dim1}, {start_dim2}, {templ_width})")
-        print("found max at", location)
-
-
+    for test_case in test_cases:
+        template, search_window = crop_template_search_window(test_case, image)
+        res = cv2.matchTemplate(search_window,template,cv2.TM_CCOEFF)
+        max_loc = np.unravel_index(res.argmax(), res.shape)
+        max_loc = (max_loc[0]+test_case.image_loc[0],max_loc[1]+test_case.image_loc[1])
+        correct=True
+        if max_loc!=(test_case.template_loc[0], test_case.template_loc[1]):
+            print("opencv incorrect location")
+            correct=False
+        N = 10
+        start = time.time()
+        for i in range(N):
+            res = cv2.matchTemplate(search_window,template,cv2.TM_CCOEFF)
+        pair_time = (time.time()-start)/N
+        print("opencv single image-template pair: ",test_case.template_size, test_case.image_size, correct, pair_time, 's' ) 
+        
+        timing_data.append(['opencv-cpu',test_case.template_size, test_case.image_size, correct, pair_time])
+    time_df = pd.DataFrame(timing_data, columns=['algorithm', 'template_size', 'search_window_size', 'accuracy', 'time'])
+    time_df.to_csv("tm_timing_opencv_cpu.csv", index=False)
 if __name__=='__main__':
-    main()
+    timing_test_cases()
