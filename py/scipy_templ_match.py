@@ -44,10 +44,10 @@ def timing_test_cases():
         start = time.time()
         for i in range(N):
             res = do_scipy(search_window_f,search_window,template)
-        pair_time = (time.time()-start)/N + fft_time
-        print("scipy single image-template pair: ",test_case.template_size, test_case.image_size, correct, pair_time, 's' ) 
+        match_time = (time.time()-start)/N
+        print("scipy single image-template pair: ",test_case.template_size, test_case.image_size, correct, match_time+fft_time, 's' ) 
         
-        timing_data.append(['scipy',test_case.template_size, test_case.image_size, correct, pair_time,fft_time , pair_time-fft_time])
+        timing_data.append(['scipy',test_case.template_size, test_case.image_size, correct, match_time+fft_time,fft_time , match_time])
     time_df = pd.DataFrame(timing_data, columns=['algorithm', 'template_size', 'search_window_size', 'accuracy', 'time', 'fft_time_image', "match_time"])
     time_df.to_csv("tm_timing_scipy.csv", index=False)
 if __name__=='__main__':

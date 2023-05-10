@@ -34,11 +34,27 @@ def timing_test_cases():
     #image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
     image = np.asarray(ImageOps.grayscale(Image.open(image_path)), dtype=np.float32)
     ##indexing a numpy array passes a reference not a copy
+    N=10
     for test_case in test_cases:
         template, search_window = crop_template_search_window(test_case, image)
         start = time.time()
         search_window_gpu = cupy.array(search_window)
         im_tm = cupy.array(im_tm)
+        gpu_memalloc_time = time.time()-start
         search_window_f = cufp.fftn(search_window_gpu)
         fft_time = time.time()-start
-        do_cupy(search_window_f,search_window.shape,template)
+        res = do_cupy(search_window_f,search_window.shape,template)
+        max_loc = np.unravel_index(res.argmax(), res.shape)
+        max_loc = (max_loc[0]+test_case.image_loc[0],max_loc[1]+test_case.image_loc[1])
+        correct=True
+        if max_loc!=(test_case.template_loc[0], test_case.template_loc[1]):
+            print("cupy incorrect location")
+            correct=False        
+        start = time.time()
+        for i in range(N):
+            do_cupy(search_window_f,search_window.shape,template)
+        match_time = time.time()-start
+        timing_data.append(['tf-batch',test_case.template_size, test_case.image_size, correct, (gpu_memalloc_time+fft_time+match_time/N),fft_time, gpu_memalloc_time,match_time/N ])
+    time_df = pd.DataFrame(timing_data, columns=['algorithm', 'template_size', 'search_window_size', 'accuracy', 'time', 'fft_time_image', 'gpu_memalloc_time', match_time])
+
+    time_df.to_csv("tm_timing_tf_batch.csv", index=False)
