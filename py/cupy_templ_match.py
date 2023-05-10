@@ -52,7 +52,7 @@ def timing_test_cases():
             correct=False        
         start = time.time()
         for i in range(N):
-            do_cupy(search_window_f,search_window.shape,template)
+            res = do_cupy(search_window_f,search_window.shape,template)
         match_time = (time.time()-start)/N
         timing_data.append(['cupy',test_case.template_size, test_case.image_size, correct, (gpu_memalloc_time+fft_time+match_time),fft_time, gpu_memalloc_time,match_time])
     time_df = pd.DataFrame(timing_data, columns=['algorithm', 'template_size', 'search_window_size', 'accuracy', 'time', 'fft_time_image', 'gpu_memalloc_time', match_time])
@@ -70,7 +70,7 @@ def timing_test_cases():
         fft_time = time.time()-start
         start = time.time()
         for i in range(j):
-            do_cupy(search_window_f,search_window.shape,template)
+            res = do_cupy(search_window_f,search_window.shape,template)
         match_time = (time.time()-start)/j
         pair_scaling.append(['cupy',test_case.template_size, test_case.image_size,j, (gpu_memalloc_time+fft_time+match_time),fft_time, gpu_memalloc_time,match_time])
     pair_scaling_df = pd.DataFrame(pair_scaling, columns=['algorithm', 'template_size', 'search_window_size','N-pairs', 'time', 'fft_time_image', 'gpu_memalloc_time', 'match_time'])

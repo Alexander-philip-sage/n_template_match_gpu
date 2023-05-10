@@ -190,7 +190,7 @@ def timing_test_cases():
         template, search_window = crop_template_search_window(test_case, image)
         start = time.time()
         batch_template = np.zeros((template.shape[0],template.shape[1],1,N), dtype=np.float32)
-        for i in range(N):
+        for i in range(j):
           batch_template[:,:,0,i] = template[:,:].copy()
         mem_templ_time = time.time()-start
         start = time.time()

@@ -39,5 +39,18 @@ def timing_test_cases():
         timing_data.append(['opencv-cpu',test_case.template_size, test_case.image_size, correct, pair_time])
     time_df = pd.DataFrame(timing_data, columns=['algorithm', 'template_size', 'search_window_size', 'accuracy', 'time'])
     time_df.to_csv("tm_timing_opencv_cpu.csv", index=False)
+
+    test_case = test_cases[2]
+    pair_scaling=[]
+    for j in range(1,N*2):
+        template, search_window = crop_template_search_window(test_case, image)
+        start = time.time()
+        for i in range(j):
+            res = cv2.matchTemplate(search_window,template,cv2.TM_CCOEFF)
+        match_time = (time.time()-start)/j
+        pair_scaling.append(['opencv',test_case.template_size, test_case.image_size,j, match_time ])
+    pair_scaling_df = pd.DataFrame(pair_scaling, columns=['algorithm', 'template_size', 'search_window_size','N-pairs', 'time'])
+    pair_scaling_df.to_csv("tm_timing_N_opencv.csv", index=False)
+
 if __name__=='__main__':
     timing_test_cases()
