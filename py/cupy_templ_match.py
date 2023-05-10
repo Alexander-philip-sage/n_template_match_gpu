@@ -53,8 +53,26 @@ def timing_test_cases():
         start = time.time()
         for i in range(N):
             do_cupy(search_window_f,search_window.shape,template)
-        match_time = time.time()-start
-        timing_data.append(['tf-batch',test_case.template_size, test_case.image_size, correct, (gpu_memalloc_time+fft_time+match_time/N),fft_time, gpu_memalloc_time,match_time/N ])
+        match_time = (time.time()-start)/N
+        timing_data.append(['cupy',test_case.template_size, test_case.image_size, correct, (gpu_memalloc_time+fft_time+match_time),fft_time, gpu_memalloc_time,match_time])
     time_df = pd.DataFrame(timing_data, columns=['algorithm', 'template_size', 'search_window_size', 'accuracy', 'time', 'fft_time_image', 'gpu_memalloc_time', match_time])
+    time_df.to_csv("tm_timing_cupy.csv", index=False)
 
-    time_df.to_csv("tm_timing_tf_batch.csv", index=False)
+    test_case = test_cases[2]
+    pair_scaling=[]
+    for j in range(1,N*2):
+        template, search_window = crop_template_search_window(test_case, image)
+        start = time.time()
+        search_window_gpu = cupy.array(search_window)
+        im_tm = cupy.array(im_tm)
+        gpu_memalloc_time = time.time()-start
+        search_window_f = cufp.fftn(search_window_gpu)
+        fft_time = time.time()-start
+        start = time.time()
+        for i in range(j):
+            do_cupy(search_window_f,search_window.shape,template)
+        match_time = (time.time()-start)/j
+        pair_scaling.append(['cupy',test_case.template_size, test_case.image_size,j, (gpu_memalloc_time+fft_time+match_time),fft_time, gpu_memalloc_time,match_time])
+    pair_scaling_df = pd.DataFrame(pair_scaling, columns=['algorithm', 'template_size', 'search_window_size','N-pairs', 'time', 'fft_time_image', 'gpu_memalloc_time', 'match_time'])
+    pair_scaling_df.to_csv("tm_timing_N_cupy.csv", index=False)
+

@@ -31,8 +31,8 @@ if __name__=='__main__':
     #image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
     image = cv2.imread(image_path, 0)    
     print("creating test cases based on opencv correct results")
-    image_sizes = [1000*(i+1) for i in range(8)]
-    template_sizes = [100*(pow(2,i)) for i in range(8)]
+    image_sizes = [500*(i+1) for i in range(8)]
+    template_sizes = [200*(i+1) for i in range(20)]
     for img_size in image_sizes:
         for tmpl_size in template_sizes:
             

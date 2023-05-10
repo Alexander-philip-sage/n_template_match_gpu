@@ -50,5 +50,23 @@ def timing_test_cases():
         timing_data.append(['scipy',test_case.template_size, test_case.image_size, correct, match_time+fft_time,fft_time , match_time])
     time_df = pd.DataFrame(timing_data, columns=['algorithm', 'template_size', 'search_window_size', 'accuracy', 'time', 'fft_time_image', "match_time"])
     time_df.to_csv("tm_timing_scipy.csv", index=False)
+
+    test_case = test_cases[2]
+    pair_scaling=[]
+    for j in range(1,N*2):
+        template, search_window = crop_template_search_window(test_case, image)
+        start = time.time()
+        search_window_f = scfp.fftn(search_window)
+        fft_time = time.time()-start
+        start = time.time()
+        for i in range(N):
+            res = do_scipy(search_window_f,search_window,template)
+        match_time = (time.time()-start)/j
+ 
+        pair_scaling.append(['scipy',test_case.template_size, test_case.image_size,j, match_time+fft_time,fft_time , match_time ])
+    pair_scaling_df = pd.DataFrame(pair_scaling, columns=['algorithm', 'template_size', 'search_window_size','N-pairs', 'time', 'fft_time_image', "match_time"])
+    pair_scaling_df.to_csv("tm_timing_scipy.csv", index=False)
+
+
 if __name__=='__main__':
     timing_test_cases()

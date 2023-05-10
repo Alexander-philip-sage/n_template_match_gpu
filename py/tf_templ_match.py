@@ -158,12 +158,13 @@ def timing_test_cases():
     for test_case in test_cases:
         N = 10
         if test_case.template_size<1000 and test_case.image_size< 3000:
-          start = time.time()
           template, search_window = crop_template_search_window(test_case, image)
+          start = time.time()
           batch_template = np.zeros((template.shape[0],template.shape[1],1,N), dtype=np.float32)
           for i in range(N):
             batch_template[:,:,0,i] = template[:,:].copy()
-          print("memory allocated", time.time()-start)
+          mem_templ_time = time.time()-start
+          print("memory allocated",mem_templ_time )
           res_batch, ct_frames, compute_time, memory_time = tf_batch_conv(search_window, batch_template.copy(), verbose=False)
           res = res_batch[0,:,:,0].numpy()
           max_loc = np.unravel_index(res.argmax(), res.shape)
@@ -174,16 +175,31 @@ def timing_test_cases():
               correct=False
           start = time.time()
           res_batch, ct_frames, compute_time, memory_time = tf_batch_conv(search_window, batch_template.copy(), verbose=False)
-          pair_time = (time.time()-start)/N
-          print("tf-batch image-template pair: ",test_case.template_size, test_case.image_size, correct, pair_time, 's' ) 
+          match_time = (time.time()-start)/N
+          print("tf-batch image-template pair: ",test_case.template_size, test_case.image_size, correct, match_time, 's' ) 
           
-          timing_data.append(['tf-batch',test_case.template_size, test_case.image_size, correct, pair_time])
+          timing_data.append(['tf-batch',test_case.template_size, test_case.image_size, correct, match_time, mem_templ_time])
         else:
           print("skipping", test_case.template_size, test_case.image_size)
-    time_df = pd.DataFrame(timing_data, columns=['algorithm', 'template_size', 'search_window_size', 'accuracy', 'time'])
-
+    time_df = pd.DataFrame(timing_data, columns=['algorithm', 'template_size', 'search_window_size', 'accuracy', 'time', 'mem_templ_time'])
     time_df.to_csv("tm_timing_tf_batch.csv", index=False)
 
+    test_case = test_cases[2]
+    pair_scaling=[]
+    for j in range(1,N*2):
+        template, search_window = crop_template_search_window(test_case, image)
+        start = time.time()
+        batch_template = np.zeros((template.shape[0],template.shape[1],1,N), dtype=np.float32)
+        for i in range(N):
+          batch_template[:,:,0,i] = template[:,:].copy()
+        mem_templ_time = time.time()-start
+        start = time.time()
+        res_batch, ct_frames, compute_time, memory_time = tf_batch_conv(search_window, batch_template.copy(), verbose=False)
+        match_time = (time.time()-start)/j
+        
+        pair_scaling.append(['tf-batch',test_case.template_size, test_case.image_size,j,match_time ,mem_templ_time  ])
+    pair_scaling_df = pd.DataFrame(pair_scaling, columns=['algorithm', 'template_size', 'search_window_size','N-pairs', 'time', 'cpu_mem_templ_time'])
+    pair_scaling_df.to_csv("tm_timing_N_tf_batch.csv", index=False)
 
 if __name__=='__main__':
   timing_test_cases()
