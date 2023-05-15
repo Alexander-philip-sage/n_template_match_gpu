@@ -157,31 +157,28 @@ def timing_test_cases():
     image = np.asarray(ImageOps.grayscale(Image.open(image_path)), dtype=np.float32)
     for test_i,test_case in enumerate(test_cases):
         N = 10
-        if test_case.template_size<1000 and test_case.image_size< 3000:
-          print("test", test_i)
-          template, search_window = crop_template_search_window(test_case, image)
-          start = time.time()
-          batch_template = np.zeros((template.shape[0],template.shape[1],1,N), dtype=np.float32)
-          for i in range(N):
-            batch_template[:,:,0,i] = template[:,:].copy()
-          mem_templ_time = time.time()-start
-          print("memory allocated",mem_templ_time ,s)
-          res_batch, ct_frames, compute_time, memory_time = tf_batch_conv(search_window, batch_template.copy(), verbose=False)
-          res = res_batch[0,:,:,0].numpy()
-          max_loc = np.unravel_index(res.argmax(), res.shape)
-          max_loc = (max_loc[0]+test_case.image_loc[0],max_loc[1]+test_case.image_loc[1])
-          correct=True
-          if max_loc!=(test_case.template_loc[0], test_case.template_loc[1]):
-              print("tf batch incorrect location")
-              correct=False
-          start = time.time()
-          res_batch, ct_frames, compute_time, memory_time = tf_batch_conv(search_window, batch_template.copy(), verbose=False)
-          match_time = (time.time()-start)/N
-          print("tf-batch image-template pair: ",test_case.template_size, test_case.image_size, correct, match_time, 's' ) 
-          
-          timing_data.append(['tf-batch',test_case.template_size, test_case.image_size, correct, match_time, mem_templ_time])
-        else:
-          print("skipping", test_case.template_size, test_case.image_size)
+        print("test", test_i)
+        template, search_window = crop_template_search_window(test_case, image)
+        start = time.time()
+        batch_template = np.zeros((template.shape[0],template.shape[1],1,N), dtype=np.float32)
+        for i in range(N):
+          batch_template[:,:,0,i] = template[:,:].copy()
+        mem_templ_time = time.time()-start
+        print("memory allocated",mem_templ_time ,s)
+        res_batch, ct_frames, compute_time, memory_time = tf_batch_conv(search_window, batch_template.copy(), verbose=False)
+        res = res_batch[0,:,:,0].numpy()
+        max_loc = np.unravel_index(res.argmax(), res.shape)
+        max_loc = (max_loc[0]+test_case.image_loc[0],max_loc[1]+test_case.image_loc[1])
+        correct=True
+        if max_loc!=(test_case.template_loc[0], test_case.template_loc[1]):
+            print("tf batch incorrect location")
+            correct=False
+        start = time.time()
+        res_batch, ct_frames, compute_time, memory_time = tf_batch_conv(search_window, batch_template.copy(), verbose=False)
+        match_time = (time.time()-start)/N
+        print("tf-batch image-template pair: ",test_case.template_size, test_case.image_size, correct, match_time, 's' ) 
+        
+        timing_data.append(['tf-batch',test_case.template_size, test_case.image_size, correct, match_time, mem_templ_time])
     time_df = pd.DataFrame(timing_data, columns=['algorithm', 'template_size', 'search_window_size', 'accuracy', 'time', 'mem_templ_time'])
     time_df.to_csv("tm_timing_tf_batch.csv", index=False)
 
