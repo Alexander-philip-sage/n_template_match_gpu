@@ -197,7 +197,7 @@ def timing_test_cases():
         
         pair_scaling.append(['tf-batch',test_case.template_size, test_case.image_size,j,match_time ,mem_templ_time  ])
     pair_scaling_df = pd.DataFrame(pair_scaling, columns=['algorithm', 'template_size', 'search_window_size','N-pairs', 'time', 'cpu_mem_templ_time'])
-    pair_scaling_df.to_csv("tm_timing_N_tf_batch.csv", index=False)
+    #pair_scaling_df.to_csv("tm_timing_N_tf_batch.csv", index=False)
 
 def test_batch_shape():
     print("\ntf-batch implementation")
