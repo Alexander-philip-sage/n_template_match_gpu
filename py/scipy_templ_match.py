@@ -17,7 +17,7 @@ def do_scipy(F,im,im_tm):
     F_cc = F * np.conj(F_tm)
     c = (scfp.ifftn(F_cc/np.abs(F_cc))).real
     return c
-def timing_test_cases():
+def timing_scaling():
     timing_data = []
     verbose=False
     print("\ntiming scipy implementation")
@@ -27,7 +27,6 @@ def timing_test_cases():
     image_path=image_fname
     #image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
     image = np.asarray(ImageOps.grayscale(Image.open(image_path)), dtype=np.float32)
-    ##indexing a numpy array passes a reference not a copy
     for test_case in test_cases:
         template, search_window = crop_template_search_window(test_case, image)
         start = time.time()
@@ -51,9 +50,16 @@ def timing_test_cases():
     time_df = pd.DataFrame(timing_data, columns=['algorithm', 'template_size', 'search_window_size', 'accuracy', 'time', 'fft_time_image', "match_time"])
     time_df.to_csv("tm_timing_scipy.csv", index=False)
 
-    test_case = test_cases[2]
+def time_N_pairs():
+    print("\ntiming scipy N-pairs implementation")
+    image_fname = "search8000x8000.png"
+    with open("test_cases.pickle", 'rb') as fileobj:
+        test_cases = pickle.load(fileobj)    
+    image_path=image_fname
+    #image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
+    image = np.asarray(ImageOps.grayscale(Image.open(image_path)), dtype=np.float32)
     pair_scaling=[]
-    for j in range(1,N*2):
+    for j, test_case in enumerate(test_cases):
         template, search_window = crop_template_search_window(test_case, image)
         start = time.time()
         search_window_f = scfp.fftn(search_window)
@@ -69,4 +75,5 @@ def timing_test_cases():
 
 
 if __name__=='__main__':
-    timing_test_cases()
+    timing_scaling()
+    time_N_pairs()

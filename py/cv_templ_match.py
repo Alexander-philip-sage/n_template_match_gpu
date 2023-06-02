@@ -9,7 +9,7 @@ import glob
 import pandas as pd
 import time
 from test_cases import crop_template_search_window
-def timing_test_cases():
+def timing_scaling():
     timing_data = []
     verbose=False
     print("\ntiming opencv-cpu implementation")
@@ -40,9 +40,16 @@ def timing_test_cases():
     time_df = pd.DataFrame(timing_data, columns=['algorithm', 'template_size', 'search_window_size', 'accuracy', 'time'])
     time_df.to_csv("tm_timing_opencv_cpu.csv", index=False)
 
-    test_case = test_cases[2]
+def time_N_pairs():
+    print("\ntiming opencv-cpu  N-pairs implementation")
+    image_fname = "search8000x8000.png"
+    with open("test_cases.pickle", 'rb') as fileobj:
+        test_cases = pickle.load(fileobj)    
+    image_path=image_fname
+    #image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
+    image = cv2.imread(image_path, 0)
     pair_scaling=[]
-    for j in range(1,N*2):
+    for j , test_case in enumerate(test_cases):
         template, search_window = crop_template_search_window(test_case, image)
         start = time.time()
         for i in range(j):
@@ -53,4 +60,5 @@ def timing_test_cases():
     pair_scaling_df.to_csv("tm_timing_N_opencv.csv", index=False)
 
 if __name__=='__main__':
-    timing_test_cases()
+    timing_scaling()
+    time_N_pairs()
