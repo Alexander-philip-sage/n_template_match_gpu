@@ -49,7 +49,8 @@ def time_N_pairs():
     #image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
     image = cv2.imread(image_path, 0)
     pair_scaling=[]
-    for j , test_case in enumerate(test_cases):
+    for i , test_case in enumerate(test_cases):
+        j = i+1
         template, search_window = crop_template_search_window(test_case, image)
         start = time.time()
         for i in range(j):

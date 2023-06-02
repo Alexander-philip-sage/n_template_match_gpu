@@ -59,7 +59,8 @@ def time_N_pairs():
     #image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
     image = np.asarray(ImageOps.grayscale(Image.open(image_path)), dtype=np.float32)
     pair_scaling=[]
-    for j, test_case in enumerate(test_cases):
+    for i, test_case in enumerate(test_cases):
+        j = i+1
         template, search_window = crop_template_search_window(test_case, image)
         start = time.time()
         search_window_f = scfp.fftn(search_window)

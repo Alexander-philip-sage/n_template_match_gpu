@@ -200,7 +200,7 @@ def timing_test_cases():
     #pair_scaling_df.to_csv("tm_timing_N_tf_batch.csv", index=False)
 
 def test_batch_shape():
-    print("\ntf-batch implementation")
+    print("\ntf-batch implementation - test batch shape")
     with open("test_cases_400_1000.pickle", 'rb') as fileobj:
         test_cases = pickle.load(fileobj)    
     image_fname = "search8000x8000.png"
@@ -214,9 +214,10 @@ def test_batch_shape():
     batch_template = np.zeros((template.shape[0],template.shape[1],1,N), dtype=np.float32)
     for i in range(N):
       batch_template[:,:,0,i] = template[:,:].copy()
-    res_batch, ct_frames, compute_time, memory_time = tf_batch_conv(search_window, batch_template.copy(), verbose=False)
     print("single image. multi-template shapes")
-    print("template", batch_template.shape, "search_window",np.expand_dims(np.expand_dims(search_window,2),0).shape, "result", res_batch.shape)
+    res_batch, ct_frames, compute_time, memory_time = tf_batch_conv(search_window, batch_template.copy(), verbose=False)
+    print("template", batch_template.shape, "search_window",np.expand_dims(np.expand_dims(search_window,2),0).shape, 
+          "result", res_batch.shape)
     res = res_batch[0,:,:,0].numpy()
     max_loc = np.unravel_index(res.argmax(), res.shape)
     max_loc = (max_loc[0]+test_case.image_loc[0],max_loc[1]+test_case.image_loc[1])
@@ -226,6 +227,7 @@ def test_batch_shape():
       correct=False
     print("tf-batch image-template pair: ",test_case.template_size, test_case.image_size, correct, 's' ) 
 
+    print("\nmulti- image. multi-template shapes")
     batch_templates = np.zeros((template.shape[0],template.shape[1],1,N), dtype=np.float32)
     image_batch = np.zeros((N,search_window.shape[0],search_window.shape[1],1))
     for i in range(N):
@@ -233,15 +235,15 @@ def test_batch_shape():
       template, search_window = crop_template_search_window(test_case, image)
       batch_templates[:,:,0,i] = template.copy()
       image_batch[i,:,:,0] = search_window.copy()
-    print("multi- image. multi-template shapes")
     ccoeff_coef = (math.reduce_sum(batch_templates,axis=(0,1), keepdims=True)/(batch_templates.shape[0]*batch_templates.shape[1]))
     batch_templates = math.subtract(batch_templates, ccoeff_coef)
     #print("batch_templates", type(batch_templates.numpy()), batch_templates.shape)
     #print("tf_image", type(tf_image.numpy()), tf_image.shape)
+    print("template", batch_template.shape, "search_window",image_batch.shape)
     res_batch=tf.nn.conv2d(image_batch, batch_templates,
               strides=[1,1,1,1],
               padding="VALID")
-    print("template", batch_template.shape, "search_window",image_batch.shape, "result", res_batch.shape)
+    print("result", res_batch.shape)
     res = res_batch[0,:,:,N-1].numpy()
     max_loc = np.unravel_index(res.argmax(), res.shape)
     max_loc = (max_loc[0]+test_case.image_loc[0],max_loc[1]+test_case.image_loc[1])
@@ -251,14 +253,16 @@ def test_batch_shape():
       correct=False
     print("tf-batch image-template pair: ",test_case.template_size, test_case.image_size, correct, 's' ) 
 
+
+    print("\nmulti- image. multi-template shapes")
     batch_templates = np.zeros((template.shape[0],template.shape[1],1,N), dtype=np.float32)
     image_batch = np.zeros((1,search_window.shape[0],search_window.shape[1],N))
+    print("template", batch_template.shape, "search_window",image_batch.shape)
     for i in range(N):
       test_case = test_cases[i]
       template, search_window = crop_template_search_window(test_case, image)      
       batch_templates[:,:,0,i] = template.copy()
       image_batch[0,:,:,i] = search_window.copy()
-    print("multi- image. multi-template shapes")
     ccoeff_coef = (math.reduce_sum(batch_templates,axis=(0,1), keepdims=True)/(batch_templates.shape[0]*batch_templates.shape[1]))
     batch_templates = math.subtract(batch_templates, ccoeff_coef)
     #print("batch_templates", type(batch_templates.numpy()), batch_templates.shape)
@@ -266,7 +270,7 @@ def test_batch_shape():
     res_batch=tf.nn.conv2d(image_batch, batch_templates,
               strides=[1,1,1,1],
               padding="VALID")
-    print("template", batch_template.shape, "search_window",image_batch.shape, "result", res_batch.shape)
+    print("result", res_batch.shape)
     res = res_batch[0,:,:,N-1].numpy()
     max_loc = np.unravel_index(res.argmax(), res.shape)
     max_loc = (max_loc[0]+test_case.image_loc[0],max_loc[1]+test_case.image_loc[1])
