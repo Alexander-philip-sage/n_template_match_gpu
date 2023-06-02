@@ -10,6 +10,12 @@ START=`date +"%s"`
 NOW=`date +"%s"`
 echo $((NOW - START)) seconds
 
+echo "Scipy"
+START=`date +"%s"`
+/usr/bin/time -v python3 /eagle/BrainImagingML/apsage/n_template_match_gpu/py/scipy_templ_match.py 
+NOW=`date +"%s"`
+echo $((NOW - START)) seconds
+
 echo "TF"
 START=`date +"%s"`
 /usr/bin/time -v python3 /eagle/BrainImagingML/apsage/n_template_match_gpu/py/tf_templ_match.py 
