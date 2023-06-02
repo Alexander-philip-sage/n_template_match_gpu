@@ -164,7 +164,7 @@ def timing_test_cases():
         for i in range(N):
           batch_template[:,:,0,i] = template[:,:].copy()
         mem_templ_time = time.time()-start
-        print("memory allocated",mem_templ_time ,s)
+        print("memory allocated",mem_templ_time ,'s')
         res_batch, ct_frames, compute_time, memory_time = tf_batch_conv(search_window, batch_template.copy(), verbose=False)
         res = res_batch[0,:,:,0].numpy()
         max_loc = np.unravel_index(res.argmax(), res.shape)

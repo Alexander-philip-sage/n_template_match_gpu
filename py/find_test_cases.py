@@ -91,4 +91,4 @@ def find_same_sizes(template_size:int, image_size:int, ct_test_cases:int):
 
 if __name__=='__main__':
     find_same_sizes(400, 1000, 20)
-    #find_scaling_test_cases()
+    find_scaling_test_cases()
