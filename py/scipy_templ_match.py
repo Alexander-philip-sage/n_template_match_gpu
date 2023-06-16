@@ -53,7 +53,7 @@ def timing_scaling():
 def time_N_pairs():
     print("\ntiming scipy N-pairs implementation")
     image_fname = "search8000x8000.png"
-    with open("test_cases.pickle", 'rb') as fileobj:
+    with open("test_cases_400_1000.pickle", 'rb') as fileobj:
         test_cases = pickle.load(fileobj)    
     image_path=image_fname
     #image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)

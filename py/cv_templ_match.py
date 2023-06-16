@@ -43,7 +43,7 @@ def timing_scaling():
 def time_N_pairs():
     print("\ntiming opencv-cpu  N-pairs implementation")
     image_fname = "search8000x8000.png"
-    with open("test_cases.pickle", 'rb') as fileobj:
+    with open("test_cases_400_1000.pickle", 'rb') as fileobj:
         test_cases = pickle.load(fileobj)    
     image_path=image_fname
     #image_path = os.path.join("/eagle/BrainImagingML/apsage/n_template_match_gpu",image_fname)
@@ -56,6 +56,7 @@ def time_N_pairs():
         for i in range(j):
             res = cv2.matchTemplate(search_window,template,cv2.TM_CCOEFF)
         match_time = (time.time()-start)/j
+        print("opencv N image-template pair: ",test_case.template_size, test_case.image_size, match_time, 's' ) 
         pair_scaling.append(['opencv',test_case.template_size, test_case.image_size,j, match_time ])
     pair_scaling_df = pd.DataFrame(pair_scaling, columns=['algorithm', 'template_size', 'search_window_size','N-pairs', 'time'])
     pair_scaling_df.to_csv("tm_timing_N_opencv.csv", index=False)

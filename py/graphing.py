@@ -7,6 +7,8 @@ scipy_N = pd.read_csv("tm_timing_N_scipy.csv")
 opencv = pd.read_csv("tm_timing_opencv_cpu.csv")
 assert len(opencv['accuracy'].unique())==1
 opencv_N = pd.read_csv("tm_timing_N_opencv.csv")
+tf_N = pd.read_csv("tm_timing_N_tf_batch.csv")
+tf_batch= pd.read_csv("tm_timing_tf_batch.csv")
 
 def scaling_search_window(df_list, label_list):
     template_size=800
@@ -46,7 +48,8 @@ def scaling_pairs(df_list, label_list):
     fig.savefig("scaling_n_pairs.png")
     plt.close()
 
-scaling_search_window([scipy, opencv], ['scipy', 'opencv'])
-scaling_template([scipy, opencv], ['scipy', 'opencv'])
-scaling_pairs([scipy_N, opencv_N], ['scipy', 'opencv'])
+scaling_search_window([scipy, opencv, tf_batch], ['scipy', 'opencv', 'tf'])
+scaling_template([scipy, opencv, tf_batch], ['scipy', 'opencv','tf'])
+scaling_pairs([scipy_N, opencv_N, tf_N], ['scipy', 'opencv','tf'])
+#scaling_pairs([scipy_N, opencv_N, tf_N], ['scipy', 'opencv', 'tf'])
 #print(scipy)
